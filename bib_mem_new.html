@@ -193,38 +193,27 @@
 
             let verses = [];
             
-            // 💡 캡처해주신 데이터 구조({ chapters: [...] })에 딱 맞춘 핵심 로직!
+            // 💡 올려주신 JSON 파일 구조에 완벽하게 맞춘 추출 로직!
             if (data.chapters && Array.isArray(data.chapters)) {
-                // 사용자가 선택한 장(chapter)에서 1을 빼서 배열 순서(0부터 시작)를 맞춥니다.
-                const chapterIndex = parseInt(chapter) - 1; 
-                const chapterData = data.chapters[chapterIndex];
+                // 1. 현재 선택한 '장(chapter)'과 번호가 같은 데이터를 찾습니다.
+                const targetChapter = data.chapters.find(c => c.chapter == chapter);
 
-                if (chapterData) {
-                    // 객체 형태 {"1": "태초에...", "2": "..."} 에서 말씀만 쏙쏙 뽑아오기
-                    for (const [verseNum, verseText] of Object.entries(chapterData)) {
-                        // 혹시 섞여 있을지 모를 불필요한 메타데이터 건너뛰기
-                        if (verseNum === 'chapter' || verseNum === 'verses') continue; 
-                        
-                        const textStr = typeof verseText === 'string' ? verseText : (verseText.text || verseText.content || "");
-                        verses.push({ verse: verseNum, text: textStr });
-                    }
+                // 2. 그 장 안에 'verses(절)' 배열이 있다면 뽑아옵니다.
+                if (targetChapter && targetChapter.verses) {
+                    verses = targetChapter.verses.map(v => ({
+                        verse: v.verse,
+                        text: v.text
+                    }));
                 }
             } 
-            // 혹시 예전 방식의 데이터가 섞여 있을 경우를 대비한 방어막
+            // 만약 구조가 다른 예전 방식 데이터가 섞여 있을 경우를 위한 예비망
             else if (Array.isArray(data)) {
                 verses = data.filter(v => v.chapter == chapter);
-            } else if (typeof data === 'object') {
-                const chapterData = data[chapter] || data[String(chapter)];
-                if (chapterData) {
-                    for (const [verseNum, verseText] of Object.entries(chapterData)) {
-                        const textStr = typeof verseText === 'string' ? verseText : (verseText.text || verseText.content || "");
-                        verses.push({ verse: verseNum, text: textStr });
-                    }
-                }
             }
 
             viewer.innerHTML = ""; // 로딩 글씨 지우기
 
+            // 장을 못 찾았거나 데이터가 비어있을 때
             if (verses.length === 0) {
                 viewer.innerHTML = `<p style="text-align:center; color:#e74c3c;">⚠️ ${chapter}장 데이터를 화면에 그릴 수 없습니다.</p>`;
                 return;
@@ -234,8 +223,7 @@
             verses.forEach(v => {
                 const div = document.createElement("div");
                 div.className = "verse-item";
-                const verseContent = v.text || v.content || ""; 
-                div.innerHTML = `<span class="verse-num">${v.verse}</span><span>${verseContent}</span>`;
+                div.innerHTML = `<span class="verse-num">${v.verse}</span><span>${v.text}</span>`;
                 viewer.appendChild(div);
             });
 
