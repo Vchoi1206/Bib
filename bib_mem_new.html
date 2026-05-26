@@ -2,104 +2,598 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>나만의 말씀 카드 아카이빙</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>말씀 아카이빙</title>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; background-color: #f4f7f6; }
-        .tabs { display: flex; gap: 5px; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 12px; border: none; background: #cbd5e0; cursor: pointer; border-radius: 8px; font-weight: bold; }
-        .tab-btn.active { background: #3498db; color: white; }
-        .panel { display: none; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500&display=swap');
+
+        :root {
+            --cream: #faf7f2;
+            --parchment: #f0ead8;
+            --gold: #b8962e;
+            --gold-light: #e8d5a3;
+            --ink: #2c2416;
+            --ink-soft: #5a4e3a;
+            --ink-faint: #9a8e7a;
+            --border: #d8ccb4;
+            --white: #ffffff;
+            --red-soft: #c0392b;
+            --blue-accent: #2c5f8a;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--cream);
+            background-image:
+                radial-gradient(ellipse at 20% 0%, rgba(184,150,46,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 100%, rgba(44,95,138,0.05) 0%, transparent 50%);
+            min-height: 100vh;
+            color: var(--ink);
+        }
+
+        header {
+            text-align: center;
+            padding: 36px 20px 24px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(180deg, var(--white) 0%, var(--cream) 100%);
+        }
+
+        header h1 {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: 0.04em;
+        }
+
+        header p {
+            font-size: 0.78rem;
+            color: var(--ink-faint);
+            margin-top: 6px;
+            letter-spacing: 0.08em;
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 24px 16px 60px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            background: var(--white);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 13px 8px;
+            border: none;
+            background: var(--white);
+            cursor: pointer;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--ink-faint);
+            transition: all 0.2s;
+            border-right: 1px solid var(--border);
+        }
+
+        .tab-btn:last-child { border-right: none; }
+        .tab-btn:hover { background: var(--parchment); color: var(--ink); }
+        .tab-btn.active { background: var(--gold); color: var(--white); font-weight: 700; }
+
+        .panel { display: none; }
         .panel.active { display: block; }
-        select, input, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button { padding: 10px; background: #3498db; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .verse-item { padding: 5px 0; border-bottom: 1px solid #eee; }
-        .word-card { background: #fffcf0; border: 1px solid #f39c12; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+
+        .card-box {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(44,36,22,0.06);
+        }
+
+        .row { display: flex; gap: 10px; margin-bottom: 12px; }
+        .row > * { flex: 1; }
+
+        select, input[type="number"], input[type="text"], textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            background: var(--cream);
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.85rem;
+            color: var(--ink);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            border-color: var(--gold);
+            background: var(--white);
+        }
+
+        label {
+            display: block;
+            font-size: 0.74rem;
+            font-weight: 500;
+            color: var(--ink-faint);
+            letter-spacing: 0.05em;
+            margin-bottom: 5px;
+            margin-top: 14px;
+        }
+
+        label:first-child { margin-top: 0; }
+        textarea { resize: vertical; line-height: 1.7; }
+
+        #bibleViewer {
+            margin-top: 16px;
+            max-height: 380px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        #bibleViewer::-webkit-scrollbar { width: 4px; }
+        #bibleViewer::-webkit-scrollbar-track { background: transparent; }
+        #bibleViewer::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        .verse-item {
+            display: flex;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0ead8;
+            line-height: 1.75;
+            font-size: 0.9rem;
+            color: var(--ink);
+        }
+
+        .verse-item:last-child { border-bottom: none; }
+
+        .verse-num {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 0.72rem;
+            color: var(--gold);
+            font-weight: 700;
+            min-width: 22px;
+            padding-top: 3px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 13px;
+            margin-top: 16px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.04em;
+            transition: all 0.2s;
+        }
+
+        .btn-primary { background: var(--gold); color: var(--white); }
+        .btn-primary:hover { background: #a07828; }
+
+        #keywordFilter {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin-bottom: 16px;
+        }
+
+        .kw-badge {
+            padding: 5px 13px;
+            border-radius: 20px;
+            font-size: 0.76rem;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--white);
+            color: var(--ink-soft);
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .kw-badge:hover, .kw-badge.active {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--white);
+        }
+
+        .word-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--gold);
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 14px;
+            transition: box-shadow 0.2s;
+        }
+
+        .word-card:hover { box-shadow: 0 4px 16px rgba(184,150,46,0.12); }
+
+        .word-card-ref {
+            font-size: 0.74rem;
+            font-weight: 700;
+            color: var(--gold);
+            letter-spacing: 0.07em;
+            margin-bottom: 8px;
+        }
+
+        .word-card-text {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: var(--ink);
+            white-space: pre-wrap;
+        }
+
+        .word-card-kw {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 3px 10px;
+            background: var(--parchment);
+            border-radius: 12px;
+            font-size: 0.72rem;
+            color: var(--ink-soft);
+            font-weight: 500;
+        }
+
+        .word-card-memo {
+            margin-top: 10px;
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: 6px;
+            font-size: 0.82rem;
+            color: var(--ink-soft);
+            line-height: 1.65;
+            white-space: pre-wrap;
+        }
+
+        .word-card-memo::before { content: "✦ "; color: var(--gold); font-size: 0.7rem; }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 0;
+            color: var(--ink-faint);
+            font-size: 0.85rem;
+            line-height: 2;
+        }
+
+        .status-msg {
+            text-align: center;
+            padding: 32px 0;
+            color: var(--ink-faint);
+            font-size: 0.85rem;
+        }
+
+        .status-err { color: var(--red-soft); }
+
+        .toast {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--ink);
+            color: var(--white);
+            padding: 11px 24px;
+            border-radius: 24px;
+            font-size: 0.83rem;
+            opacity: 0;
+            transition: all 0.3s;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
 
-<h1>📖 말씀 아카이빙</h1>
-<div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('read-panel', this)">📖 성경 열람</button>
-    <button class="tab-btn" onclick="switchTab('create-panel', this)">✍️ 카드 생성</button>
-    <button class="tab-btn" onclick="switchTab('view-panel', this)">🗂️ 보관함</button>
-</div>
+<header>
+    <h1>📖 말씀 아카이빙</h1>
+    <p>WORD CARD ARCHIVE</p>
+</header>
 
-<div id="read-panel" class="panel active">
-    <select id="readBook" onchange="updateChapters('readBook', 'readChapter'); loadBibleVerses();"></select>
-    <select id="readChapter" onchange="loadBibleVerses()"></select>
-    <div id="bibleViewer" style="margin-top:15px; height: 300px; overflow-y: auto;"></div>
-</div>
-
-<div id="create-panel" class="panel">
-    <select id="cardBook" onchange="updateChapters('cardBook', 'cardChapter');"></select>
-    <select id="cardChapter"></select>
-    <div style="display:flex; gap:5px;">
-        <input type="number" id="startVerse" placeholder="시작 절" onchange="loadCardPreview()">
-        <input type="number" id="endVerse" placeholder="끝 절" onchange="loadCardPreview()">
+<div class="container">
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('read-panel', this)">📖 성경 열람</button>
+        <button class="tab-btn" onclick="switchTab('create-panel', this)">✍️ 카드 생성</button>
+        <button class="tab-btn" onclick="switchTab('view-panel', this)">🗂️ 보관함</button>
     </div>
-    <textarea id="cardText" rows="10" placeholder="범위를 입력하면 본문이 표시됩니다."></textarea>
-    <input type="text" id="cardKeyword" placeholder="키워드">
-    <textarea id="cardMemo" rows="3" placeholder="묵상 기록"></textarea>
-    <button onclick="saveWordCard()" style="width:100%;">💝 저장하기</button>
+
+    <div id="read-panel" class="panel active">
+        <div class="card-box">
+            <div class="row">
+                <div>
+                    <label>성경책</label>
+                    <select id="readBook" onchange="updateChapters('readBook','readChapter'); loadBibleVerses();"></select>
+                </div>
+                <div>
+                    <label>장</label>
+                    <select id="readChapter" onchange="loadBibleVerses()"></select>
+                </div>
+            </div>
+            <div id="bibleViewer">
+                <div class="status-msg">성경책과 장을 선택해 주세요.</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="create-panel" class="panel">
+        <div class="card-box">
+            <div class="row">
+                <div>
+                    <label>성경책</label>
+                    <select id="cardBook" onchange="updateChapters('cardBook','cardChapter');"></select>
+                </div>
+                <div>
+                    <label>장</label>
+                    <select id="cardChapter"></select>
+                </div>
+            </div>
+            <div class="row">
+                <div>
+                    <label>시작 절</label>
+                    <input type="number" id="startVerse" placeholder="예: 1" min="1">
+                </div>
+                <div>
+                    <label>끝 절</label>
+                    <input type="number" id="endVerse" placeholder="예: 5" min="1">
+                </div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:4px;" onclick="loadCardPreview()">본문 불러오기</button>
+            <label>본문</label>
+            <textarea id="cardText" rows="8" placeholder="위에서 불러오거나 직접 입력하세요."></textarea>
+            <label>키워드</label>
+            <input type="text" id="cardKeyword" placeholder="예: 은혜, 회복, 소망">
+            <label>묵상 기록</label>
+            <textarea id="cardMemo" rows="3" placeholder="오늘 이 말씀에서 받은 은혜를 기록해 보세요."></textarea>
+            <button class="btn btn-primary" onclick="saveWordCard()">💝 저장하기</button>
+        </div>
+    </div>
+
+    <div id="view-panel" class="panel">
+        <div id="keywordFilter"></div>
+        <div id="savedCardsDisplay"></div>
+    </div>
 </div>
 
-<div id="view-panel" class="panel">
-    <div id="keywordFilter"></div>
-    <div id="savedCardsDisplay"></div>
-</div>
+<div class="toast" id="toast"></div>
 
 <script>
-    const ntBooks = [{ id: "mat", name: "마태복음", chapters: 28 }, { id: "mrk", name: "마가복음", chapters: 16 }, { id: "luk", name: "누가복음", chapters: 24 }, { id: "jhn", name: "요한복음", chapters: 21 }, { id: "act", name: "사도행전", chapters: 28 }, { id: "rom", name: "로마서", chapters: 16 }, { id: "1co", name: "고린도전서", chapters: 16 }, { id: "2co", name: "고린도후서", chapters: 13 }, { id: "gal", name: "갈라디아서", chapters: 6 }, { id: "eph", name: "에베소서", chapters: 6 }, { id: "php", name: "빌립보서", chapters: 4 }, { id: "col", name: "골로새서", chapters: 4 }, { id: "1th", name: "데살로니가전서", chapters: 5 }, { id: "2th", name: "데살로니가후서", chapters: 3 }, { id: "1ti", name: "디모데전서", chapters: 6 }, { id: "2ti", name: "디모데후서", chapters: 4 }, { id: "tit", name: "디도서", chapters: 3 }, { id: "phm", name: "빌레몬서", chapters: 1 }, { id: "heb", name: "히브리서", chapters: 13 }, { id: "jas", name: "야고보서", chapters: 5 }, { id: "1pe", name: "베드로전서", chapters: 5 }, { id: "2pe", name: "베드로후서", chapters: 3 }, { id: "1jn", name: "요한일서", chapters: 5 }, { id: "2jn", name: "요한이서", chapters: 1 }, { id: "3jn", name: "요한삼서", chapters: 1 }, { id: "jud", name: "유다서", chapters: 1 }, { id: "rev", name: "요한계시록", chapters: 22 }];
+    const ntBooks = [
+        { id: "mat", name: "마태복음", chapters: 28 },
+        { id: "mrk", name: "마가복음", chapters: 16 },
+        { id: "luk", name: "누가복음", chapters: 24 },
+        { id: "jhn", name: "요한복음", chapters: 21 },
+        { id: "act", name: "사도행전", chapters: 28 },
+        { id: "rom", name: "로마서", chapters: 16 },
+        { id: "1co", name: "고린도전서", chapters: 16 },
+        { id: "2co", name: "고린도후서", chapters: 13 },
+        { id: "gal", name: "갈라디아서", chapters: 6 },
+        { id: "eph", name: "에베소서", chapters: 6 },
+        { id: "php", name: "빌립보서", chapters: 4 },
+        { id: "col", name: "골로새서", chapters: 4 },
+        { id: "1th", name: "데살로니가전서", chapters: 5 },
+        { id: "2th", name: "데살로니가후서", chapters: 3 },
+        { id: "1ti", name: "디모데전서", chapters: 6 },
+        { id: "2ti", name: "디모데후서", chapters: 4 },
+        { id: "tit", name: "디도서", chapters: 3 },
+        { id: "phm", name: "빌레몬서", chapters: 1 },
+        { id: "heb", name: "히브리서", chapters: 13 },
+        { id: "jas", name: "야고보서", chapters: 5 },
+        { id: "1pe", name: "베드로전서", chapters: 5 },
+        { id: "2pe", name: "베드로후서", chapters: 3 },
+        { id: "1jn", name: "요한일서", chapters: 5 },
+        { id: "2jn", name: "요한이서", chapters: 1 },
+        { id: "3jn", name: "요한삼서", chapters: 1 },
+        { id: "jud", name: "유다서", chapters: 1 },
+        { id: "rev", name: "요한계시록", chapters: 22 }
+    ];
 
     async function getBibleData(bookId) {
         const book = ntBooks.find(b => b.id === bookId);
-        const res = await fetch(`./krv/${book.name}.json`);
+        if (!book) throw new Error(`책 ID를 찾을 수 없음: ${bookId}`);
+        const url = `./krv/${book.name}.json`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`파일 로드 실패 (${res.status}): ${url}`);
         return await res.json();
     }
 
-    // 💡 검증된 로직 그대로 사용
     async function loadBibleVerses() {
-        const bookId = document.getElementById("readBook").value;
+        const bookId  = document.getElementById("readBook").value;
         const chapter = document.getElementById("readChapter").value;
-        const viewer = document.getElementById("bibleViewer");
-        const data = await getBibleData(bookId);
-        const target = data.chapters.find(c => c.chapter == chapter);
-        viewer.innerHTML = target.verses.map(v => `<div class="verse-item"><b>${v.verse}</b> ${v.text}</div>`).join('');
+        const viewer  = document.getElementById("bibleViewer");
+
+        viewer.innerHTML = '<div class="status-msg">📖 말씀을 불러오는 중입니다...</div>';
+
+        try {
+            const data = await getBibleData(bookId);
+            if (!data) {
+                viewer.innerHTML = '<div class="status-msg status-err">⚠️ 데이터를 찾을 수 없습니다.</div>';
+                return;
+            }
+
+            let verses = [];
+
+            if (data.chapters && Array.isArray(data.chapters)) {
+                const targetChapter = data.chapters.find(c => c.chapter == chapter);
+                if (targetChapter && targetChapter.verses) {
+                    verses = targetChapter.verses.map(v => ({ verse: v.verse, text: v.text }));
+                }
+            } else if (Array.isArray(data)) {
+                verses = data.filter(v => v.chapter == chapter);
+            }
+
+            if (verses.length === 0) {
+                viewer.innerHTML = `<div class="status-msg status-err">⚠️ ${chapter}장 데이터를 불러올 수 없습니다.</div>`;
+                return;
+            }
+
+            viewer.innerHTML = "";
+            verses.forEach(v => {
+                const div = document.createElement("div");
+                div.className = "verse-item";
+                div.innerHTML = `<span class="verse-num">${v.verse}</span><span>${v.text}</span>`;
+                viewer.appendChild(div);
+            });
+
+        } catch (err) {
+            console.error("말씀 로딩 에러:", err);
+            viewer.innerHTML = `<div class="status-msg status-err">⚠️ 오류: ${err.message}</div>`;
+        }
     }
 
-    // 💡 카드 생성 탭: 검증된 로직 기반으로 범위 필터링 추가
     async function loadCardPreview() {
-        const bookId = document.getElementById("cardBook").value;
-        const chapter = document.getElementById("cardChapter").value;
-        const start = parseInt(document.getElementById("startVerse").value);
-        const end = parseInt(document.getElementById("endVerse").value);
-        if(!start || !end) return;
-        
-        const data = await getBibleData(bookId);
-        const target = data.chapters.find(c => c.chapter == chapter);
-        const filtered = target.verses.filter(v => v.verse >= start && v.verse <= end);
-        document.getElementById("cardText").value = filtered.map(v => `${v.verse}절: ${v.text}`).join("\n");
+        const bookId   = document.getElementById("cardBook").value;
+        const chapter  = document.getElementById("cardChapter").value;
+        const start    = parseInt(document.getElementById("startVerse").value);
+        const end      = parseInt(document.getElementById("endVerse").value);
+        const textarea = document.getElementById("cardText");
+
+        if (!start || !end) { showToast("시작 절과 끝 절을 입력해 주세요."); return; }
+        if (start > end)    { showToast("시작 절이 끝 절보다 클 수 없어요."); return; }
+
+        textarea.value = "불러오는 중...";
+
+        try {
+            const data = await getBibleData(bookId);
+            let verses = [];
+
+            if (data.chapters && Array.isArray(data.chapters)) {
+                const targetChapter = data.chapters.find(c => c.chapter == chapter);
+                if (targetChapter && targetChapter.verses) {
+                    verses = targetChapter.verses.filter(v => v.verse >= start && v.verse <= end);
+                }
+            } else if (Array.isArray(data)) {
+                verses = data.filter(v => v.chapter == chapter && v.verse >= start && v.verse <= end);
+            }
+
+            if (verses.length === 0) {
+                textarea.value = "";
+                showToast("해당 범위의 말씀을 찾을 수 없어요.");
+                return;
+            }
+
+            textarea.value = verses.map(v => `${v.verse}절  ${v.text}`).join("\n");
+
+        } catch (err) {
+            console.error("카드 본문 로딩 에러:", err);
+            textarea.value = "";
+            showToast(`오류: ${err.message}`);
+        }
     }
 
-    // ... [switchTab, saveWordCard, renderCards 등 기타 함수는 동일] ...
+    function saveWordCard() {
+        const bookId  = document.getElementById("cardBook").value;
+        const chapter = document.getElementById("cardChapter").value;
+        const start   = document.getElementById("startVerse").value;
+        const end     = document.getElementById("endVerse").value;
+        const text    = document.getElementById("cardText").value.trim();
+        const keyword = document.getElementById("cardKeyword").value.trim();
+        const memo    = document.getElementById("cardMemo").value.trim();
+
+        if (!text) { showToast("본문을 먼저 불러와 주세요."); return; }
+
+        const book = ntBooks.find(b => b.id === bookId);
+        const ref  = `${book.name} ${chapter}장 ${start}-${end}절`;
+        const card = { ref, text, keyword, memo, date: new Date().toLocaleDateString("ko-KR") };
+
+        const saved = getSavedCards();
+        saved.push(card);
+        localStorage.setItem("wordCards", JSON.stringify(saved));
+
+        document.getElementById("cardText").value    = "";
+        document.getElementById("cardKeyword").value = "";
+        document.getElementById("cardMemo").value    = "";
+        document.getElementById("startVerse").value  = "";
+        document.getElementById("endVerse").value    = "";
+
+        showToast("💝 말씀 카드가 저장되었어요!");
+    }
+
+    function getSavedCards() {
+        try { return JSON.parse(localStorage.getItem("wordCards")) || []; }
+        catch { return []; }
+    }
+
+    let activeKeyword = null;
+
+    function renderCards() {
+        const cards   = getSavedCards();
+        const kwSet   = [...new Set(cards.map(c => c.keyword).filter(Boolean))];
+        const filter  = document.getElementById("keywordFilter");
+        const display = document.getElementById("savedCardsDisplay");
+
+        filter.innerHTML = kwSet.map(kw =>
+            `<span class="kw-badge ${activeKeyword === kw ? 'active' : ''}" onclick="toggleKeyword('${kw}')">${kw}</span>`
+        ).join('');
+
+        const filtered = activeKeyword ? cards.filter(c => c.keyword === activeKeyword) : cards;
+
+        if (filtered.length === 0) {
+            display.innerHTML = `<div class="empty-state">아직 저장된 말씀 카드가 없어요.<br>✍️ 카드 생성 탭에서 첫 카드를 만들어 보세요.</div>`;
+            return;
+        }
+
+        display.innerHTML = [...filtered].reverse().map(c => `
+            <div class="word-card">
+                <div class="word-card-ref">📖 ${c.ref} · ${c.date}</div>
+                <div class="word-card-text">${c.text}</div>
+                ${c.keyword ? `<span class="word-card-kw"># ${c.keyword}</span>` : ''}
+                ${c.memo    ? `<div class="word-card-memo">${c.memo}</div>` : ''}
+            </div>
+        `).join('');
+    }
+
+    function toggleKeyword(kw) {
+        activeKeyword = activeKeyword === kw ? null : kw;
+        renderCards();
+    }
+
     function switchTab(pId, btn) {
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(pId).classList.add('active');
         btn.classList.add('active');
+        if (pId === 'view-panel') renderCards();
     }
 
-    function updateChapters(bId, cId) {
-        const book = ntBooks.find(b => b.id === document.getElementById(bId).value);
-        const sel = document.getElementById(cId);
+    function updateChapters(bookSelectId, chapterSelectId) {
+        const bookId = document.getElementById(bookSelectId).value;
+        const book   = ntBooks.find(b => b.id === bookId);
+        const sel    = document.getElementById(chapterSelectId);
         sel.innerHTML = "";
-        for(let i=1; i<=book.chapters; i++) sel.innerHTML += `<option value="${i}">${i}장</option>`;
+        for (let i = 1; i <= book.chapters; i++) {
+            sel.innerHTML += `<option value="${i}">${i}장</option>`;
+        }
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2600);
     }
 
     window.onload = () => {
         ['readBook', 'cardBook'].forEach(id => {
-            ntBooks.forEach(b => document.getElementById(id).innerHTML += `<option value="${b.id}">${b.name}</option>`);
+            ntBooks.forEach(b => {
+                const opt = document.createElement("option");
+                opt.value = b.id;
+                opt.textContent = b.name;
+                document.getElementById(id).appendChild(opt);
+            });
         });
         updateChapters('readBook', 'readChapter');
         updateChapters('cardBook', 'cardChapter');
