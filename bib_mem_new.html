@@ -11,14 +11,12 @@
             --cream: #faf7f2;
             --parchment: #f0ead8;
             --gold: #b8962e;
-            --gold-light: #e8d5a3;
             --ink: #2c2416;
             --ink-soft: #5a4e3a;
             --ink-faint: #9a8e7a;
             --border: #d8ccb4;
             --white: #ffffff;
             --red-soft: #c0392b;
-            --blue-accent: #2c5f8a;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -26,9 +24,6 @@
         body {
             font-family: 'Noto Sans KR', sans-serif;
             background-color: var(--cream);
-            background-image:
-                radial-gradient(ellipse at 20% 0%, rgba(184,150,46,0.06) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 100%, rgba(44,95,138,0.05) 0%, transparent 50%);
             min-height: 100vh;
             color: var(--ink);
         }
@@ -63,7 +58,6 @@
 
         .tabs {
             display: flex;
-            gap: 0;
             margin-bottom: 24px;
             border: 1px solid var(--border);
             border-radius: 10px;
@@ -142,7 +136,6 @@
         }
 
         #bibleViewer::-webkit-scrollbar { width: 4px; }
-        #bibleViewer::-webkit-scrollbar-track { background: transparent; }
         #bibleViewer::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
         .verse-item {
@@ -152,7 +145,6 @@
             border-bottom: 1px solid #f0ead8;
             line-height: 1.75;
             font-size: 0.9rem;
-            color: var(--ink);
         }
 
         .verse-item:last-child { border-bottom: none; }
@@ -177,7 +169,6 @@
             font-size: 0.88rem;
             font-weight: 700;
             cursor: pointer;
-            letter-spacing: 0.04em;
             transition: all 0.2s;
         }
 
@@ -372,39 +363,39 @@
 
 <script>
     const ntBooks = [
-        { id: "mat", name: "마태복음", chapters: 28 },
-        { id: "mrk", name: "마가복음", chapters: 16 },
-        { id: "luk", name: "누가복음", chapters: 24 },
-        { id: "jhn", name: "요한복음", chapters: 21 },
-        { id: "act", name: "사도행전", chapters: 28 },
-        { id: "rom", name: "로마서", chapters: 16 },
-        { id: "1co", name: "고린도전서", chapters: 16 },
-        { id: "2co", name: "고린도후서", chapters: 13 },
-        { id: "gal", name: "갈라디아서", chapters: 6 },
-        { id: "eph", name: "에베소서", chapters: 6 },
-        { id: "php", name: "빌립보서", chapters: 4 },
-        { id: "col", name: "골로새서", chapters: 4 },
-        { id: "1th", name: "데살로니가전서", chapters: 5 },
-        { id: "2th", name: "데살로니가후서", chapters: 3 },
-        { id: "1ti", name: "디모데전서", chapters: 6 },
-        { id: "2ti", name: "디모데후서", chapters: 4 },
-        { id: "tit", name: "디도서", chapters: 3 },
-        { id: "phm", name: "빌레몬서", chapters: 1 },
-        { id: "heb", name: "히브리서", chapters: 13 },
-        { id: "jas", name: "야고보서", chapters: 5 },
-        { id: "1pe", name: "베드로전서", chapters: 5 },
-        { id: "2pe", name: "베드로후서", chapters: 3 },
-        { id: "1jn", name: "요한일서", chapters: 5 },
-        { id: "2jn", name: "요한이서", chapters: 1 },
-        { id: "3jn", name: "요한삼서", chapters: 1 },
-        { id: "jud", name: "유다서", chapters: 1 },
-        { id: "rev", name: "요한계시록", chapters: 22 }
+        { id: "mat", name: "마태복음",     file: "matthew",        chapters: 28 },
+        { id: "mrk", name: "마가복음",     file: "mark",           chapters: 16 },
+        { id: "luk", name: "누가복음",     file: "luke",           chapters: 24 },
+        { id: "jhn", name: "요한복음",     file: "john",           chapters: 21 },
+        { id: "act", name: "사도행전",     file: "acts",           chapters: 28 },
+        { id: "rom", name: "로마서",       file: "romans",         chapters: 16 },
+        { id: "1co", name: "고린도전서",   file: "1corinthians",   chapters: 16 },
+        { id: "2co", name: "고린도후서",   file: "2corinthians",   chapters: 13 },
+        { id: "gal", name: "갈라디아서",   file: "galatians",      chapters: 6  },
+        { id: "eph", name: "에베소서",     file: "ephesians",      chapters: 6  },
+        { id: "php", name: "빌립보서",     file: "philippians",    chapters: 4  },
+        { id: "col", name: "골로새서",     file: "colossians",     chapters: 4  },
+        { id: "1th", name: "데살로니가전서", file: "1thessalonians", chapters: 5 },
+        { id: "2th", name: "데살로니가후서", file: "2thessalonians", chapters: 3 },
+        { id: "1ti", name: "디모데전서",   file: "1timothy",       chapters: 6  },
+        { id: "2ti", name: "디모데후서",   file: "2timothy",       chapters: 4  },
+        { id: "tit", name: "디도서",       file: "titus",          chapters: 3  },
+        { id: "phm", name: "빌레몬서",     file: "philemon",       chapters: 1  },
+        { id: "heb", name: "히브리서",     file: "hebrews",        chapters: 13 },
+        { id: "jas", name: "야고보서",     file: "james",          chapters: 5  },
+        { id: "1pe", name: "베드로전서",   file: "1peter",         chapters: 5  },
+        { id: "2pe", name: "베드로후서",   file: "2peter",         chapters: 3  },
+        { id: "1jn", name: "요한일서",     file: "1john",          chapters: 5  },
+        { id: "2jn", name: "요한이서",     file: "2john",          chapters: 1  },
+        { id: "3jn", name: "요한삼서",     file: "3john",          chapters: 1  },
+        { id: "jud", name: "유다서",       file: "jude",           chapters: 1  },
+        { id: "rev", name: "요한계시록",   file: "revelation",     chapters: 22 }
     ];
 
     async function getBibleData(bookId) {
         const book = ntBooks.find(b => b.id === bookId);
         if (!book) throw new Error(`책 ID를 찾을 수 없음: ${bookId}`);
-        const url = `./krv/${book.name}.json`;
+        const url = `./krv/${book.file}.json`;
         const res = await fetch(url);
         if (!res.ok) throw new Error(`파일 로드 실패 (${res.status}): ${url}`);
         return await res.json();
@@ -425,7 +416,6 @@
             }
 
             let verses = [];
-
             if (data.chapters && Array.isArray(data.chapters)) {
                 const targetChapter = data.chapters.find(c => c.chapter == chapter);
                 if (targetChapter && targetChapter.verses) {
