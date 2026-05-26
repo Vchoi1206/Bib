@@ -193,17 +193,30 @@
 
             let verses = [];
             
-            // 1. 데이터가 '리스트(배열)' 형태일 때 (기존 방식)
-            if (Array.isArray(data)) {
-                verses = data.filter(v => v.chapter == chapter);
+            // 💡 캡처해주신 데이터 구조({ chapters: [...] })에 딱 맞춘 핵심 로직!
+            if (data.chapters && Array.isArray(data.chapters)) {
+                // 사용자가 선택한 장(chapter)에서 1을 빼서 배열 순서(0부터 시작)를 맞춥니다.
+                const chapterIndex = parseInt(chapter) - 1; 
+                const chapterData = data.chapters[chapterIndex];
+
+                if (chapterData) {
+                    // 객체 형태 {"1": "태초에...", "2": "..."} 에서 말씀만 쏙쏙 뽑아오기
+                    for (const [verseNum, verseText] of Object.entries(chapterData)) {
+                        // 혹시 섞여 있을지 모를 불필요한 메타데이터 건너뛰기
+                        if (verseNum === 'chapter' || verseNum === 'verses') continue; 
+                        
+                        const textStr = typeof verseText === 'string' ? verseText : (verseText.text || verseText.content || "");
+                        verses.push({ verse: verseNum, text: textStr });
+                    }
+                }
             } 
-            // 2. 데이터가 '사전(객체)' 형태일 때 (가져온 파일의 실제 구조 대비)
-            else if (typeof data === 'object') {
+            // 혹시 예전 방식의 데이터가 섞여 있을 경우를 대비한 방어막
+            else if (Array.isArray(data)) {
+                verses = data.filter(v => v.chapter == chapter);
+            } else if (typeof data === 'object') {
                 const chapterData = data[chapter] || data[String(chapter)];
                 if (chapterData) {
-                    // 사전을 리스트로 변환
                     for (const [verseNum, verseText] of Object.entries(chapterData)) {
-                        // 텍스트 구조도 융통성 있게 처리
                         const textStr = typeof verseText === 'string' ? verseText : (verseText.text || verseText.content || "");
                         verses.push({ verse: verseNum, text: textStr });
                     }
@@ -212,14 +225,12 @@
 
             viewer.innerHTML = ""; // 로딩 글씨 지우기
 
-            // 데이터가 아예 빈 경우 방어
             if (verses.length === 0) {
                 viewer.innerHTML = `<p style="text-align:center; color:#e74c3c;">⚠️ ${chapter}장 데이터를 화면에 그릴 수 없습니다.</p>`;
-                console.log("데이터 구조 확인용:", data); // 문제 생기면 개발자 도구에서 보려고 남겨둠
                 return;
             }
 
-            // 드디어 화면에 성경 말씀 쫙 뿌려주기
+            // 🌟 드디어 화면에 성경 말씀 예쁘게 띄워주기
             verses.forEach(v => {
                 const div = document.createElement("div");
                 div.className = "verse-item";
