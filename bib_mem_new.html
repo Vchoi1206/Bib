@@ -113,38 +113,33 @@
     // 💡 변경된 핵심 부분: 파일명을 한글(bookInfo.name)로 찾도록 수정했습니다.
     // 💡 맥북 한글 자모분리(NFD) 문제를 완벽하게 해결한 데이터 로드 함수
     async function getBibleData(bookId) {
-        if (bibleDataCache[bookId]) return bibleDataCache[bookId];
-        
-        const bookInfo = ntBooks.find(b => b.id === bookId);
-        
-        // 1. 일반적인 한글 파일명 (NFC)
-        const nfcUrl = `./krv/${bookInfo.name}.json`;
-        
-        // 2. 맥북 특유의 쪼개진 한글 파일명 (NFD)
-        const nfdName = bookInfo.name.normalize('NFD');
-        const nfdUrl = `./krv/${nfdName}.json`;
-        
+    if (bibleDataCache[bookId]) return bibleDataCache[bookId];
+    
+    const bookInfo = ntBooks.find(b => b.id === bookId);
+    
+    // 1순위: 일반 한글 이름, 2순위: 맥북용 쪼개진 한글 이름(NFD)
+    const urlsToTry = [
+        `./krv/${bookInfo.name}.json`,
+        `./krv/${bookInfo.name.normalize('NFD')}.json`
+    ];
+    
+    for (const url of urlsToTry) {
         try {
-            // 먼저 일반 한글 이름으로 가져와봅니다.
-            let response = await fetch(nfcUrl);
-            
-            // 만약 못 찾았다면(맥북 인코딩 문제라면), 쪼개진 한글 이름으로 다시 가져옵니다.
-            if (!response.ok) {
-                console.log("일반 경로 실패, 맥북용(NFD) 경로로 재시도합니다.");
-                response = await fetch(nfdUrl);
+            const response = await fetch(url);
+            if (response.ok) {
+                const json = await response.json();
+                bibleDataCache[bookId] = json;
+                return json; // 성공하면 여기서 즉시 완료!
             }
-            
-            if (!response.ok) throw new Error();
-            
-            const json = await response.json();
-            bibleDataCache[bookId] = json;
-            return json;
         } catch(e) {
-            console.error(`${bookInfo.name} 데이터 로드 실패:`, e);
-            return null;
+            // 실패하면 에러를 무시하고 맥북용 이름으로 다시 시도합니다.
         }
     }
-
+    
+    // 두 가지 경우를 다 실패했을 때만 에러창 띄우기
+    alert("데이터를 찾을 수 없습니다.");
+    return null;
+}
     function init() {
         populateBookSelect("readBook");
         populateBookSelect("cardBook");
