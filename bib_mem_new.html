@@ -184,23 +184,55 @@
 
         viewer.innerHTML = '<p style="text-align:center; color:#999;">📖 말씀을 불러오는 중입니다...</p>';
 
-        const data = await getBibleData(bookId);
-        if(!data) {
-            viewer.innerHTML = '<p style="text-align:center; color:#e74c3c;">⚠️ 데이터를 찾을 수 없습니다. krv 폴더가 올바른 위치에 업로드 되었는지 확인해 주세요.</p>';
-            return;
+        try {
+            const data = await getBibleData(bookId);
+            if(!data) {
+                viewer.innerHTML = '<p style="text-align:center; color:#e74c3c;">⚠️ 데이터를 찾을 수 없습니다.</p>';
+                return;
+            }
+
+            let verses = [];
+            
+            // 1. 데이터가 '리스트(배열)' 형태일 때 (기존 방식)
+            if (Array.isArray(data)) {
+                verses = data.filter(v => v.chapter == chapter);
+            } 
+            // 2. 데이터가 '사전(객체)' 형태일 때 (가져온 파일의 실제 구조 대비)
+            else if (typeof data === 'object') {
+                const chapterData = data[chapter] || data[String(chapter)];
+                if (chapterData) {
+                    // 사전을 리스트로 변환
+                    for (const [verseNum, verseText] of Object.entries(chapterData)) {
+                        // 텍스트 구조도 융통성 있게 처리
+                        const textStr = typeof verseText === 'string' ? verseText : (verseText.text || verseText.content || "");
+                        verses.push({ verse: verseNum, text: textStr });
+                    }
+                }
+            }
+
+            viewer.innerHTML = ""; // 로딩 글씨 지우기
+
+            // 데이터가 아예 빈 경우 방어
+            if (verses.length === 0) {
+                viewer.innerHTML = `<p style="text-align:center; color:#e74c3c;">⚠️ ${chapter}장 데이터를 화면에 그릴 수 없습니다.</p>`;
+                console.log("데이터 구조 확인용:", data); // 문제 생기면 개발자 도구에서 보려고 남겨둠
+                return;
+            }
+
+            // 드디어 화면에 성경 말씀 쫙 뿌려주기
+            verses.forEach(v => {
+                const div = document.createElement("div");
+                div.className = "verse-item";
+                const verseContent = v.text || v.content || ""; 
+                div.innerHTML = `<span class="verse-num">${v.verse}</span><span>${verseContent}</span>`;
+                viewer.appendChild(div);
+            });
+
+        } catch (error) {
+            console.error("말씀 로딩 중 에러:", error);
+            viewer.innerHTML = '<p style="text-align:center; color:#e74c3c;">⚠️ 처리 중 에러가 발생했습니다.</p>';
         }
-
-        const verses = data.filter(v => v.chapter == chapter);
-        viewer.innerHTML = "";
-
-        verses.forEach(v => {
-            const div = document.createElement("div");
-            div.className = "verse-item";
-            div.innerHTML = `<span class="verse-num">${v.verse}</span><span>${v.text}</span>`;
-            viewer.appendChild(div);
-        });
     }
-
     function switchTab(panelId, isViewTab = false) {
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
