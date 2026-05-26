@@ -2,54 +2,53 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>나만의 말씀 카드 아카이빙</title>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; line-height: 1.6; padding: 20px; max-width: 800px; margin: 0 auto; background-color: #f8f9fa; }
-        h1 { text-align: center; color: #2c3e50; }
-        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { padding: 10px 20px; border: none; border-radius: 8px; background: #e2e8f0; cursor: pointer; font-weight: bold; }
+        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; background-color: #f4f7f6; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 12px; border: none; background: #cbd5e0; cursor: pointer; border-radius: 8px; font-weight: bold; }
         .tab-btn.active { background: #3498db; color: white; }
-        .panel { display: none; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .panel { display: none; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .panel.active { display: block; }
-        select, input, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        .verse-item { padding: 8px; border-bottom: 1px solid #eee; }
-        .verse-num { font-weight: bold; color: #3498db; margin-right: 10px; }
-        .word-card { background: #fff; border-left: 5px solid #e67e22; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        select, input, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .verse-item { padding: 5px 0; border-bottom: 1px solid #eee; }
+        .word-card { background: #fffcf0; border: 1px solid #f39c12; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
     </style>
 </head>
 <body>
 
-    <h1>✨ 말씀 카드 아카이빙</h1>
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('read-panel')">📖 열람</button>
-        <button class="tab-btn" onclick="switchTab('create-panel')">✍️ 카드생성</button>
-        <button class="tab-btn" onclick="switchTab('view-panel', true)">🗂️ 보관함</button>
-    </div>
+<h1>📖 말씀 아카이빙</h1>
 
-    <div id="read-panel" class="panel active">
-        <select id="readBook" onchange="updateChapters('readBook', 'readChapter'); loadBibleVerses();"></select>
-        <select id="readChapter" onchange="loadBibleVerses()"></select>
-        <div id="bibleViewer" style="margin-top:20px; height: 400px; overflow-y: auto;"></div>
-    </div>
+<div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('read-panel', this)">📖 성경 열람</button>
+    <button class="tab-btn" onclick="switchTab('create-panel', this)">✍️ 카드 생성</button>
+    <button class="tab-btn" onclick="switchTab('view-panel', this)">🗂️ 보관함</button>
+</div>
 
-    <div id="create-panel" class="panel">
-        <select id="cardBook" onchange="updateChapters('cardBook', 'cardChapter');"></select>
-        <select id="cardChapter" onchange="loadCardPreview()"></select>
-        <div style="display:flex; gap:5px;">
-            <input type="number" id="startVerse" placeholder="시작 절" onchange="loadCardPreview()">
-            <input type="number" id="endVerse" placeholder="끝 절" onchange="loadCardPreview()">
-        </div>
-        <textarea id="cardText" rows="12" placeholder="성구 범위 입력 시 본문이 자동 표시됩니다." readonly></textarea>
-        <input type="text" id="cardKeyword" placeholder="주제 키워드 (예: 믿음)">
-        <textarea id="cardMemo" rows="4" placeholder="나의 묵상 기록"></textarea>
-        <button onclick="saveWordCard()">💝 말씀 카드 저장하기</button>
-    </div>
+<div id="read-panel" class="panel active">
+    <select id="readBook" onchange="updateChapters('readBook', 'readChapter'); loadBibleVerses();"></select>
+    <select id="readChapter" onchange="loadBibleVerses()"></select>
+    <div id="bibleViewer" style="margin-top:15px; height: 350px; overflow-y: auto;"></div>
+</div>
 
-    <div id="view-panel" class="panel">
-        <div id="savedCardsDisplay"></div>
+<div id="create-panel" class="panel">
+    <select id="cardBook" onchange="updateChapters('cardBook', 'cardChapter'); loadCardPreview();"></select>
+    <select id="cardChapter" onchange="loadCardPreview()"></select>
+    <div style="display:flex; gap:5px;">
+        <input type="number" id="startVerse" placeholder="시작 절" onchange="loadCardPreview()">
+        <input type="number" id="endVerse" placeholder="끝 절" onchange="loadCardPreview()">
     </div>
+    <textarea id="cardText" rows="10" readonly placeholder="범위를 선택하면 본문이 표시됩니다."></textarea>
+    <input type="text" id="cardKeyword" placeholder="키워드 (예: 믿음, 위로)">
+    <textarea id="cardMemo" rows="3" placeholder="나의 묵상 기록"></textarea>
+    <button onclick="saveWordCard()">💝 말씀 카드 저장하기</button>
+</div>
+
+<div id="view-panel" class="panel">
+    <div id="keywordFilter" style="margin-bottom:15px;"></div>
+    <div id="savedCardsDisplay"></div>
+</div>
 
 <script>
     const ntBooks = [
@@ -69,82 +68,74 @@
         { id: "rev", name: "요한계시록", chapters: 22 }
     ];
 
-    let bibleDataCache = {};
-
-    async function getBibleData(bookId) {
-        if (bibleDataCache[bookId]) return bibleDataCache[bookId];
-        const book = ntBooks.find(b => b.id === bookId);
-        try {
-            const res = await fetch(`./krv/${book.name}.json`);
-            const data = await res.json();
-            bibleDataCache[bookId] = data;
-            return data;
-        } catch(e) { return null; }
-    }
-
-    async function loadBibleVerses() {
-        const bookId = document.getElementById("readBook").value;
-        const chapter = document.getElementById("readChapter").value;
-        const data = await getBibleData(bookId);
-        if(!data) return;
-        const ch = data.chapters.find(c => c.chapter == chapter);
-        document.getElementById("bibleViewer").innerHTML = ch ? ch.verses.map(v => `<div class="verse-item"><span class="verse-num">${v.verse}</span>${v.text}</div>`).join('') : "";
-    }
-
-    async function loadCardPreview() {
-        const bookId = document.getElementById("cardBook").value;
-        const chapter = document.getElementById("cardChapter").value;
-        const start = document.getElementById("startVerse").value;
-        const end = document.getElementById("endVerse").value;
-        if(!start || !end) return;
-        
-        const data = await getBibleData(bookId);
-        if(!data) return;
-        const ch = data.chapters.find(c => c.chapter == chapter);
-        if(ch) {
-            const filtered = ch.verses.filter(v => v.verse >= parseInt(start) && v.verse <= parseInt(end));
-            document.getElementById("cardText").value = filtered.map(v => `${v.verse}절: ${v.text}`).join("\n");
-        }
-    }
-
-    function saveWordCard() {
-        const bookName = ntBooks.find(b => b.id === document.getElementById("cardBook").value).name;
-        const info = `${bookName} ${document.getElementById("cardChapter").value}장 ${document.getElementById("startVerse").value}~${document.getElementById("endVerse").value}절`;
-        const card = {
-            id: Date.now(),
-            info,
-            text: document.getElementById("cardText").value,
-            keyword: document.getElementById("cardKeyword").value,
-            memo: document.getElementById("cardMemo").value
-        };
-        let cards = JSON.parse(localStorage.getItem("myBibleCards") || "[]");
-        cards.push(card);
-        localStorage.setItem("myBibleCards", JSON.stringify(cards));
-        alert("저장 완료!");
-        switchTab('view-panel', true);
-    }
-
-    function switchTab(pId, isView = false) {
+    // 공통: 탭 전환 및 색상 변경
+    function switchTab(panelId, btn) {
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-        document.getElementById(pId).classList.add('active');
-        if(isView) renderCards();
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(panelId).classList.add('active');
+        btn.classList.add('active');
+        if(panelId === 'view-panel') renderCards('전체');
     }
 
-    function renderCards() {
-        const cards = JSON.parse(localStorage.getItem("myBibleCards") || "[]");
-        document.getElementById("savedCardsDisplay").innerHTML = cards.map(c => `
-            <div class="word-card">
-                <strong>${c.info} [${c.keyword}]</strong><br>
-                <div style="font-size:0.9em; margin:10px 0;">${c.text}</div>
-                <div style="color:#555;">💭 ${c.memo}</div>
-            </div>`).join('');
-    }
-
+    // 공통: 장 업데이트
     function updateChapters(bId, cId) {
         const book = ntBooks.find(b => b.id === document.getElementById(bId).value);
         const sel = document.getElementById(cId);
         sel.innerHTML = "";
         for(let i=1; i<=book.chapters; i++) sel.innerHTML += `<option value="${i}">${i}장</option>`;
+    }
+
+    // 로직: 열람 탭
+    async function loadBibleVerses() {
+        const book = ntBooks.find(b => b.id === document.getElementById("readBook").value);
+        const ch = document.getElementById("readChapter").value;
+        const res = await fetch(`./krv/${book.name}.json`);
+        const data = await res.json();
+        const target = data.chapters.find(c => c.chapter == ch);
+        document.getElementById("bibleViewer").innerHTML = target.verses.map(v => `<div class="verse-item"><b>${v.verse}</b> ${v.text}</div>`).join('');
+    }
+
+    // 로직: 카드생성 탭
+    async function loadCardPreview() {
+        const book = ntBooks.find(b => b.id === document.getElementById("cardBook").value);
+        const ch = document.getElementById("cardChapter").value;
+        const start = parseInt(document.getElementById("startVerse").value);
+        const end = parseInt(document.getElementById("endVerse").value);
+        
+        const res = await fetch(`./krv/${book.name}.json`);
+        const data = await res.json();
+        const target = data.chapters.find(c => c.chapter == ch);
+        
+        if(start && end && target) {
+            const v = target.verses.filter(x => x.verse >= start && x.verse <= end);
+            document.getElementById("cardText").value = v.map(i => `${i.verse}절: ${i.text}`).join("\n");
+        }
+    }
+
+    function saveWordCard() {
+        const card = {
+            id: Date.now(),
+            info: document.getElementById("cardBook").options[document.getElementById("cardBook").selectedIndex].text + " " + document.getElementById("cardChapter").value + "장",
+            text: document.getElementById("cardText").value,
+            keyword: document.getElementById("cardKeyword").value || "기타",
+            memo: document.getElementById("cardMemo").value
+        };
+        let cards = JSON.parse(localStorage.getItem("myCards") || "[]");
+        cards.push(card);
+        localStorage.setItem("myCards", JSON.stringify(cards));
+        alert("저장되었습니다!");
+    }
+
+    // 로직: 보관함 탭 (키워드 필터)
+    function renderCards(filter) {
+        const cards = JSON.parse(localStorage.getItem("myCards") || "[]");
+        const keywords = ["전체", ...new Set(cards.map(c => c.keyword))];
+        document.getElementById("keywordFilter").innerHTML = keywords.map(k => `<button onclick="renderCards('${k}')" style="width:auto; padding:5px 10px;">${k}</button>`).join(' ');
+        
+        const display = filter === "전체" ? cards : cards.filter(c => c.keyword === filter);
+        document.getElementById("savedCardsDisplay").innerHTML = display.map(c => `
+            <div class="word-card"><b>${c.info} [${c.keyword}]</b><p>${c.text}</p><small>${c.memo}</small></div>
+        `).join('');
     }
 
     window.onload = () => {
