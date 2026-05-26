@@ -11,9 +11,11 @@
         .panel { display: none; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .panel.active { display: block; }
         select, input, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .verse-item { padding: 5px 0; border-bottom: 1px solid #eee; }
+        button { padding: 10px 15px; background: #3498db; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 5px; }
         .word-card { background: #fffcf0; border: 1px solid #f39c12; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+        .btn-group { display: flex; gap: 5px; margin-top: 10px; }
+        .del-btn { background: #e74c3c; }
+        .edit-btn { background: #f39c12; }
     </style>
 </head>
 <body>
@@ -39,10 +41,10 @@
         <input type="number" id="startVerse" placeholder="시작 절" onchange="loadCardPreview()">
         <input type="number" id="endVerse" placeholder="끝 절" onchange="loadCardPreview()">
     </div>
-    <textarea id="cardText" rows="10" readonly placeholder="범위를 선택하면 본문이 표시됩니다."></textarea>
-    <input type="text" id="cardKeyword" placeholder="키워드 (예: 믿음, 위로)">
+    <textarea id="cardText" rows="10" placeholder="범위를 선택하면 본문이 표시됩니다."></textarea>
+    <input type="text" id="cardKeyword" placeholder="키워드 (예: 믿음)">
     <textarea id="cardMemo" rows="3" placeholder="나의 묵상 기록"></textarea>
-    <button onclick="saveWordCard()">💝 말씀 카드 저장하기</button>
+    <button onclick="saveWordCard()" style="width:100%;">💝 말씀 카드 저장하기</button>
 </div>
 
 <div id="view-panel" class="panel">
@@ -51,41 +53,77 @@
 </div>
 
 <script>
-    const ntBooks = [
-        { id: "mat", name: "마태복음", chapters: 28 }, { id: "mrk", name: "마가복음", chapters: 16 },
-        { id: "luk", name: "누가복음", chapters: 24 }, { id: "jhn", name: "요한복음", chapters: 21 },
-        { id: "act", name: "사도행전", chapters: 28 }, { id: "rom", name: "로마서", chapters: 16 },
-        { id: "1co", name: "고린도전서", chapters: 16 }, { id: "2co", name: "고린도후서", chapters: 13 },
-        { id: "gal", name: "갈라디아서", chapters: 6 }, { id: "eph", name: "에베소서", chapters: 6 },
-        { id: "php", name: "빌립보서", chapters: 4 }, { id: "col", name: "골로새서", chapters: 4 },
-        { id: "1th", name: "데살로니가전서", chapters: 5 }, { id: "2th", name: "데살로니가후서", chapters: 3 },
-        { id: "1ti", name: "디모데전서", chapters: 6 }, { id: "2ti", name: "디모데후서", chapters: 4 },
-        { id: "tit", name: "디도서", chapters: 3 }, { id: "phm", name: "빌레몬서", chapters: 1 },
-        { id: "heb", name: "히브리서", chapters: 13 }, { id: "jas", name: "야고보서", chapters: 5 },
-        { id: "1pe", name: "베드로전서", chapters: 5 }, { id: "2pe", name: "베드로후서", chapters: 3 },
-        { id: "1jn", name: "요한일서", chapters: 5 }, { id: "2jn", name: "요한이서", chapters: 1 },
-        { id: "3jn", name: "요한삼서", chapters: 1 }, { id: "jud", name: "유다서", chapters: 1 },
-        { id: "rev", name: "요한계시록", chapters: 22 }
-    ];
+    // ... [이전과 동일한 ntBooks 데이터 사용] ...
+    const ntBooks = [ { id: "mat", name: "마태복음", chapters: 28 }, { id: "mrk", name: "마가복음", chapters: 16 }, { id: "luk", name: "누가복음", chapters: 24 }, { id: "jhn", name: "요한복음", chapters: 21 }, { id: "act", name: "사도행전", chapters: 28 }, { id: "rom", name: "로마서", chapters: 16 }, { id: "1co", name: "고린도전서", chapters: 16 }, { id: "2co", name: "고린도후서", chapters: 13 }, { id: "gal", name: "갈라디아서", chapters: 6 }, { id: "eph", name: "에베소서", chapters: 6 }, { id: "php", name: "빌립보서", chapters: 4 }, { id: "col", name: "골로새서", chapters: 4 }, { id: "1th", name: "데살로니가전서", chapters: 5 }, { id: "2th", name: "데살로니가후서", chapters: 3 }, { id: "1ti", name: "디모데전서", chapters: 6 }, { id: "2ti", name: "디모데후서", chapters: 4 }, { id: "tit", name: "디도서", chapters: 3 }, { id: "phm", name: "빌레몬서", chapters: 1 }, { id: "heb", name: "히브리서", chapters: 13 }, { id: "jas", name: "야고보서", chapters: 5 }, { id: "1pe", name: "베드로전서", chapters: 5 }, { id: "2pe", name: "베드로후서", chapters: 3 }, { id: "1jn", name: "요한일서", chapters: 5 }, { id: "2jn", name: "요한이서", chapters: 1 }, { id: "3jn", name: "요한삼서", chapters: 1 }, { id: "jud", name: "유다서", chapters: 1 }, { id: "rev", name: "요한계시록", chapters: 22 } ];
 
-    // 공통: 탭 전환 및 색상 변경
-    function switchTab(panelId, btn) {
+    // 카드 생성
+    function saveWordCard() {
+        const card = {
+            id: Date.now(),
+            info: document.getElementById("cardBook").options[document.getElementById("cardBook").selectedIndex].text + " " + document.getElementById("cardChapter").value + "장 " + document.getElementById("startVerse").value + "~" + document.getElementById("endVerse").value + "절",
+            text: document.getElementById("cardText").value,
+            keyword: document.getElementById("cardKeyword").value || "기타",
+            memo: document.getElementById("cardMemo").value,
+            date: new Date().toLocaleString() // 생성 일시 기록
+        };
+        let cards = JSON.parse(localStorage.getItem("myCards") || "[]");
+        cards.push(card);
+        localStorage.setItem("myCards", JSON.stringify(cards));
+        alert("저장되었습니다!");
+        renderCards("전체");
+    }
+
+    // 카드 삭제
+    function deleteCard(id) {
+        if(!confirm("삭제하시겠습니까?")) return;
+        let cards = JSON.parse(localStorage.getItem("myCards") || "[]").filter(c => c.id !== id);
+        localStorage.setItem("myCards", JSON.stringify(cards));
+        renderCards("전체");
+    }
+
+    // 카드 수정
+    function editCard(id) {
+        let cards = JSON.parse(localStorage.getItem("myCards"));
+        let card = cards.find(c => c.id === id);
+        let newMemo = prompt("묵상 내용을 수정하세요:", card.memo);
+        if(newMemo !== null) {
+            card.memo = newMemo;
+            localStorage.setItem("myCards", JSON.stringify(cards));
+            renderCards("전체");
+        }
+    }
+
+    // 렌더링
+    function renderCards(filter) {
+        const cards = JSON.parse(localStorage.getItem("myCards") || "[]");
+        const keywords = ["전체", ...new Set(cards.map(c => c.keyword))];
+        document.getElementById("keywordFilter").innerHTML = keywords.map(k => `<button onclick="renderCards('${k}')">${k}</button>`).join(' ');
+        
+        const display = filter === "전체" ? cards : cards.filter(c => c.keyword === filter);
+        document.getElementById("savedCardsDisplay").innerHTML = display.map(c => `
+            <div class="word-card">
+                <b>${c.info} [${c.keyword}]</b><br>
+                <small style="color:gray;">작성일: ${c.date}</small>
+                <p>${c.text}</p>
+                <div style="font-size:0.9em; border-top:1px dashed #ccc; padding-top:5px;">💭 ${c.memo}</div>
+                <div class="btn-group">
+                    <button class="edit-btn" onclick="editCard(${c.id})">수정</button>
+                    <button class="del-btn" onclick="deleteCard(${c.id})">삭제</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // [기타 초기화 및 보조 함수는 이전과 동일]
+    function switchTab(pId, btn) {
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(panelId).classList.add('active');
+        document.getElementById(pId).classList.add('active');
         btn.classList.add('active');
-        if(panelId === 'view-panel') renderCards('전체');
+        if(pId === 'view-panel') renderCards('전체');
     }
-
-    // 공통: 장 업데이트
-    function updateChapters(bId, cId) {
-        const book = ntBooks.find(b => b.id === document.getElementById(bId).value);
-        const sel = document.getElementById(cId);
-        sel.innerHTML = "";
-        for(let i=1; i<=book.chapters; i++) sel.innerHTML += `<option value="${i}">${i}장</option>`;
-    }
-
-    // 로직: 열람 탭
+    
+    // ... [loadBibleVerses, loadCardPreview, updateChapters 등 동일] ...
     async function loadBibleVerses() {
         const book = ntBooks.find(b => b.id === document.getElementById("readBook").value);
         const ch = document.getElementById("readChapter").value;
@@ -95,47 +133,25 @@
         document.getElementById("bibleViewer").innerHTML = target.verses.map(v => `<div class="verse-item"><b>${v.verse}</b> ${v.text}</div>`).join('');
     }
 
-    // 로직: 카드생성 탭
     async function loadCardPreview() {
         const book = ntBooks.find(b => b.id === document.getElementById("cardBook").value);
         const ch = document.getElementById("cardChapter").value;
         const start = parseInt(document.getElementById("startVerse").value);
         const end = parseInt(document.getElementById("endVerse").value);
-        
         const res = await fetch(`./krv/${book.name}.json`);
         const data = await res.json();
         const target = data.chapters.find(c => c.chapter == ch);
-        
         if(start && end && target) {
             const v = target.verses.filter(x => x.verse >= start && x.verse <= end);
             document.getElementById("cardText").value = v.map(i => `${i.verse}절: ${i.text}`).join("\n");
         }
     }
 
-    function saveWordCard() {
-        const card = {
-            id: Date.now(),
-            info: document.getElementById("cardBook").options[document.getElementById("cardBook").selectedIndex].text + " " + document.getElementById("cardChapter").value + "장",
-            text: document.getElementById("cardText").value,
-            keyword: document.getElementById("cardKeyword").value || "기타",
-            memo: document.getElementById("cardMemo").value
-        };
-        let cards = JSON.parse(localStorage.getItem("myCards") || "[]");
-        cards.push(card);
-        localStorage.setItem("myCards", JSON.stringify(cards));
-        alert("저장되었습니다!");
-    }
-
-    // 로직: 보관함 탭 (키워드 필터)
-    function renderCards(filter) {
-        const cards = JSON.parse(localStorage.getItem("myCards") || "[]");
-        const keywords = ["전체", ...new Set(cards.map(c => c.keyword))];
-        document.getElementById("keywordFilter").innerHTML = keywords.map(k => `<button onclick="renderCards('${k}')" style="width:auto; padding:5px 10px;">${k}</button>`).join(' ');
-        
-        const display = filter === "전체" ? cards : cards.filter(c => c.keyword === filter);
-        document.getElementById("savedCardsDisplay").innerHTML = display.map(c => `
-            <div class="word-card"><b>${c.info} [${c.keyword}]</b><p>${c.text}</p><small>${c.memo}</small></div>
-        `).join('');
+    function updateChapters(bId, cId) {
+        const book = ntBooks.find(b => b.id === document.getElementById(bId).value);
+        const sel = document.getElementById(cId);
+        sel.innerHTML = "";
+        for(let i=1; i<=book.chapters; i++) sel.innerHTML += `<option value="${i}">${i}장</option>`;
     }
 
     window.onload = () => {
